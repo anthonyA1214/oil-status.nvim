@@ -489,9 +489,10 @@ describe("highlights", function()
 	end)
 
 	describe("empty git status handling", function()
-		it("should handle clean repository and show branch", function()
+		it("should show branch when enabled", function()
 			local repo_dir = helpers.create_temp_git_repo()
 			helpers.create_and_commit_file(repo_dir, "file.lua", "content")
+			require("oil-git").setup({ show_branch = true })
 
 			if pcall(require, "oil") then
 				local oil = require("oil")
@@ -528,10 +529,9 @@ describe("highlights", function()
 			helpers.cleanup(repo_dir)
 		end)
 
-		it("should not show branch when disabled", function()
+		it("should not show branch by default", function()
 			local repo_dir = helpers.create_temp_git_repo()
 			helpers.create_and_commit_file(repo_dir, "file.lua", "content")
-			require("oil-git").setup({ show_branch = false })
 
 			if pcall(require, "oil") then
 				local oil = require("oil")

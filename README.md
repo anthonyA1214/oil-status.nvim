@@ -28,7 +28,7 @@ Git status integration for [oil.nvim](https://github.com/stevearc/oil.nvim) - co
 
 - **File & directory highlighting** - Instant visual feedback based on git status.
 - **Status symbols** - Customizable symbols (added, modified, deleted, etc.) at the end of lines.
-- **Branch indicator** - Shows the current Git branch in oil buffers.
+- **Optional branch indicator** - Can show the current Git branch in oil buffers.
 - **Async & debounced** - Non-blocking execution ensures **zero lag even in massive repositories** with deep directory structures.
 - **Smart Refresh** - Auto-updates on buffer entry, file operations, and after closing terminal toggles (like LazyGit).
 
@@ -97,7 +97,7 @@ require("oil-git").setup({
   show_directory_symbols = true,
   show_ignored_files = false,       -- Show ignored file status
   show_ignored_directories = false, -- Show ignored directory status
-  show_branch = true,               -- Show current Git branch in oil buffers
+  show_branch = false,              -- Show current Git branch in oil buffers
   branch_format = " %s",           -- Format string for branch display
   symbol_position = "eol",  -- "eol", "signcolumn", or "none"
   can_use_signcolumn = nil,  -- Optional callback(bufnr): nil|bool|string
