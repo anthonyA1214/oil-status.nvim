@@ -4,6 +4,7 @@ local uv = vim.uv or vim.loop
 local path = require("oil-git.path")
 local trie = require("oil-git.trie")
 local util = require("oil-git.util")
+local config = require("oil-git.config")
 
 local CACHE_TTL_MS = 500
 
@@ -12,6 +13,7 @@ local cache = {
 	timestamp = 0,
 	status = {},
 	status_trie = nil,
+	include_ignored = nil,
 	branch = nil,
 	branch_root = nil,
 	branch_timestamp = 0,
@@ -22,6 +24,7 @@ function M.invalidate_cache()
 	cache.timestamp = 0
 	cache.status = {}
 	cache.status_trie = nil
+	cache.include_ignored = nil
 	cache.branch = nil
 	cache.branch_root = nil
 	cache.branch_timestamp = 0
@@ -288,9 +291,13 @@ function M.get_status_async(dir, callback)
 			return
 		end
 
+		local cfg = config.get()
+		local include_ignored = cfg.show_ignored_files
+			or cfg.show_ignored_directories
 		local now = uv.now()
 		if
 			cache.git_root == git_root
+			and cache.include_ignored == include_ignored
 			and (now - cache.timestamp) < CACHE_TTL_MS
 		then
 			util.debug_log(
@@ -312,9 +319,14 @@ function M.get_status_async(dir, callback)
 		local stdout = uv.new_pipe(false)
 		local output_parts = {}
 
+		local args = { "status", "--porcelain" }
+		if include_ignored then
+			table.insert(args, "--ignored")
+		end
+
 		local handle
 		handle = uv.spawn("git", {
-			args = { "status", "--porcelain", "--ignored" },
+			args = args,
 			cwd = git_root,
 			stdio = { nil, stdout, nil },
 		}, function(code)
@@ -341,6 +353,7 @@ function M.get_status_async(dir, callback)
 			cache.timestamp = uv.now()
 			cache.status = status
 			cache.status_trie = status_trie
+			cache.include_ignored = include_ignored
 
 			util.debug_log(
 				"verbose",
