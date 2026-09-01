@@ -53,12 +53,33 @@ local default_config = {
 			OilStatusCopied = { fg = "#cba6f7" },
 		},
 	},
+	diagnostics = {
+		enabled = true,
+		count = false,
+		parent_dirs = true,
+		filename_highlight = false,
+		only_highest_severity = true,
+		colors = {
+			error = "DiagnosticError",
+			warn = "DiagnosticWarn",
+			info = "DiagnosticInfo",
+			hint = "DiagnosticHint",
+		},
+		symbols = {
+			error = "",
+			warn = "",
+			info = "",
+			hint = "󰌶",
+		},
+	},
 }
 
 local config = {}
 
 local function apply_legacy_modified_highlights(opts, merged_config)
-	local user_highlights = (opts.git and opts.git.highlights) or opts.highlights or {}
+	local user_highlights = (opts.git and opts.git.highlights)
+		or opts.highlights
+		or {}
 	local legacy_modified = user_highlights.OilStatusModified
 
 	if not legacy_modified then
@@ -75,7 +96,8 @@ local function apply_legacy_modified_highlights(opts, merged_config)
 			vim.deepcopy(legacy_modified)
 	end
 
-	merged_config.git.highlights.OilStatusModified = vim.deepcopy(legacy_modified)
+	merged_config.git.highlights.OilStatusModified =
+		vim.deepcopy(legacy_modified)
 end
 
 local function make_readonly(t)
@@ -113,10 +135,11 @@ function M.setup(opts)
 	local normalized_opts = {
 		debug = opts.debug,
 		git = vim.deepcopy(opts.git or {}),
+		diagnostics = vim.deepcopy(opts.diagnostics or {}),
 	}
 
 	for k, v in pairs(opts) do
-		if k ~= "debug" and k ~= "git" then
+		if k ~= "debug" and k ~= "git" and k ~= "diagnostics" then
 			if normalized_opts.git[k] == nil then
 				normalized_opts.git[k] = v
 			end

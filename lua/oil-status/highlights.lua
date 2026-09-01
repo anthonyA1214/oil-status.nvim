@@ -2,6 +2,7 @@ local M = {}
 
 local config = require("oil-status.config")
 local constants = require("oil-status.constants")
+local diagnostics = require("oil-status.diagnostics")
 local status_mapper = require("oil-status.status_mapper")
 local trie = require("oil-status.trie")
 local util = require("oil-status.util")
@@ -84,12 +85,12 @@ local function clear_status(bufnr, reset_signcolumn)
 		return
 	end
 
-	local cfg = config.get().git
+	local cfg = config.get()
 	if
-		cfg.symbol_position == constants.SYMBOL_POSITIONS.SIGNCOLUMN
-		and cfg.can_use_signcolumn
+		cfg.git.symbol_position == constants.SYMBOL_POSITIONS.SIGNCOLUMN
+		and cfg.git.can_use_signcolumn
 	then
-		local ok, sc_value = pcall(cfg.can_use_signcolumn, bufnr)
+		local ok, sc_value = pcall(cfg.git.can_use_signcolumn, bufnr)
 		if ok and type(sc_value) == "string" then
 			set_signcolumn(bufnr, "no")
 		end
@@ -103,15 +104,16 @@ local function clear_branch(bufnr)
 end
 
 local function render_branch(bufnr, branch)
-	local cfg = config.get().git
-	if not cfg.show_branch or not branch or branch == "" then
+	local cfg = config.get()
+	if not cfg.git.show_branch or not branch or branch == "" then
 		clear_branch(bufnr)
 		return
 	end
 
 	local text = branch
-	if type(cfg.branch_format) == "string" then
-		local ok, formatted = pcall(string.format, cfg.branch_format, branch)
+	if type(cfg.git.branch_format) == "string" then
+		local ok, formatted =
+			pcall(string.format, cfg.git.branch_format, branch)
 		if ok then
 			text = formatted
 		end
@@ -131,8 +133,8 @@ end
 
 function M.setup()
 	signcolumn_cache = nil
-	local cfg = config.get_raw().git
-	for name, opts in pairs(cfg.highlights) do
+	local cfg = config.get_raw()
+	for name, opts in pairs(cfg.git.highlights) do
 		if vim.fn.hlexists(name) == 0 then
 			vim.api.nvim_set_hl(0, name, opts)
 		end
@@ -180,7 +182,7 @@ local function apply_to_buffer(
 	end
 
 	local oil = require("oil")
-	local cfg = config.get().git
+	local cfg = config.get()
 
 	if vim.tbl_isempty(git_status) then
 		clear_status(bufnr, true)
@@ -190,14 +192,14 @@ local function apply_to_buffer(
 
 	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
 	local line_count = #lines
-	local show_file_highlights = cfg.show_file_highlights
-	local show_directory_highlights = cfg.show_directory_highlights
-	local show_file_symbols = cfg.show_file_symbols
-	local show_directory_symbols = cfg.show_directory_symbols
-	local show_ignored_files = cfg.show_ignored_files
-	local show_ignored_directories = cfg.show_ignored_directories
-	local symbol_position = cfg.symbol_position
-	local can_use_signcolumn_fn = cfg.can_use_signcolumn
+	local show_file_highlights = cfg.git.show_file_highlights
+	local show_directory_highlights = cfg.git.show_directory_highlights
+	local show_file_symbols = cfg.git.show_file_symbols
+	local show_directory_symbols = cfg.git.show_directory_symbols
+	local show_ignored_files = cfg.git.show_ignored_files
+	local show_ignored_directories = cfg.git.show_ignored_directories
+	local symbol_position = cfg.git.symbol_position
+	local can_use_signcolumn_fn = cfg.git.can_use_signcolumn
 	local can_use_signcolumn_override = nil
 	local manage_signcolumn = false
 	local scl_value = nil
@@ -234,8 +236,8 @@ local function apply_to_buffer(
 	end
 	local symbols_not_disabled = symbol_position
 		~= constants.SYMBOL_POSITIONS.NONE
-	local file_symbols = cfg.symbols.file
-	local dir_symbols = cfg.symbols.directory
+	local file_symbols = cfg.git.symbols.file
+	local dir_symbols = cfg.git.symbols.directory
 
 	local highlights = {}
 	local highlights_idx = 0
@@ -300,34 +302,67 @@ local function apply_to_buffer(
 		hash_parts[hash_idx] =
 			string.format("%s:%s", entry_name, status_code or "")
 
+		local git_hl_group, git_symbol = nil, nil
 		if status_code and symbols then
-			local hl_group, symbol = status_mapper.map(status_code, symbols)
+			git_hl_group, git_symbol = status_mapper.map(status_code, symbols)
+		end
 
-			if hl_group then
-				local name_start = line:find(entry_name, 1, true)
-				if name_start then
-					local highlight_len = #entry_name
+		local diag_virt_text = diagnostics.get_virt_text(
+			entry,
+			current_dir,
+			is_directory,
+			cfg.diagnostics
+		)
+		local diag_filename_hl = diagnostics.get_filename_highlight(
+			entry,
+			current_dir,
+			is_directory,
+			cfg.diagnostics
+		)
 
-					if is_directory then
-						local slash_pos = name_start + highlight_len
-						if line:sub(slash_pos, slash_pos) == "/" then
-							highlight_len = highlight_len + 1
-						end
-					end
+		if not git_hl_group and not diag_virt_text and not diag_filename_hl then
+			goto continue
+		end
 
-					highlights_idx = highlights_idx + 1
-					highlights[highlights_idx] = {
-						line_idx = i - 1,
-						start_col = name_start - 1,
-						end_col = name_start - 1 + highlight_len,
-						hl_group = hl_group,
-						symbol = symbol,
-						show_highlight = show_highlight,
-						show_symbol = show_symbol,
-					}
+		local name_start = line:find(entry_name, 1, true)
+		if not name_start then
+			goto continue
+		end
+
+		local highlight_len = #entry_name
+		if is_directory then
+			local slash_pos = name_start + highlight_len
+			if line:sub(slash_pos, slash_pos) == "/" then
+				highlight_len = highlight_len + 1
+			end
+		end
+
+		local final_hl_group = diag_filename_hl or git_hl_group
+
+		local virt_text = {}
+		if (show_symbol and git_symbol) or diag_virt_text then
+			if show_symbol and git_symbol then
+				table.insert(virt_text, { " " .. git_symbol, final_hl_group })
+			end
+			if diag_virt_text then
+				for _, vt in ipairs(diag_virt_text) do
+					table.insert(virt_text, vt)
 				end
 			end
 		end
+
+		highlights_idx = highlights_idx + 1
+		highlights[highlights_idx] = {
+			line_idx = i - 1,
+			start_col = name_start - 1,
+			end_col = name_start - 1 + highlight_len,
+			hl_group = final_hl_group,
+			show_highlight = show_highlight and final_hl_group ~= nil,
+			show_symbol = show_symbol,
+			git_symbol = git_symbol,
+			git_hl_group = git_hl_group,
+			diag_virt_text = diag_virt_text,
+		}
 
 		::continue::
 	end
@@ -365,8 +400,8 @@ local function apply_to_buffer(
 			end
 		end
 
-		if hl.show_symbol and hl.symbol then
-			if use_signcolumn then
+		if use_signcolumn then
+			if hl.show_symbol and hl.git_symbol then
 				pcall(
 					vim.api.nvim_buf_set_extmark,
 					bufnr,
@@ -374,11 +409,15 @@ local function apply_to_buffer(
 					hl.line_idx,
 					0,
 					{
-						sign_text = vim.fn.strcharpart(hl.symbol, 0, 2),
-						sign_hl_group = hl.hl_group,
+						sign_text = vim.fn.strcharpart(hl.git_symbol, 0, 2),
+						sign_hl_group = hl.git_hl_group,
 					}
 				)
-			else
+
+				symbol_count = symbol_count + 1
+			end
+
+			if hl.diag_virt_text then
 				pcall(
 					vim.api.nvim_buf_set_extmark,
 					bufnr,
@@ -386,15 +425,44 @@ local function apply_to_buffer(
 					hl.line_idx,
 					0,
 					{
-						virt_text = {
-							{ " " .. hl.symbol, hl.hl_group },
-						},
+						virt_text = hl.diag_virt_text,
 						virt_text_pos = "eol",
 						hl_mode = "combine",
 					}
 				)
+
+				symbol_count = symbol_count + 1
 			end
-			symbol_count = symbol_count + 1
+		else
+			local combined = {}
+			if hl.show_symbol and hl.git_symbol then
+				table.insert(combined, { " " .. hl.git_symbol, hl.git_hl_group })
+			end
+			if hl.diag_virt_text then
+				if #combined > 0 then
+					table.insert(combined, { " ", nil })
+				end
+				for _, vt in ipairs(hl.diag_virt_text) do
+					table.insert(combined, vt)
+				end
+			end
+
+			if #combined > 0 then
+				pcall(
+					vim.api.nvim_buf_set_extmark,
+					bufnr,
+					ns_id,
+					hl.line_idx,
+					0,
+					{
+						virt_text = combined,
+						virt_text_pos = "eol",
+						hl_mode = "combine",
+					}
+				)
+
+				symbol_count = symbol_count + 1
+			end
 		end
 	end
 
@@ -470,7 +538,7 @@ end
 
 function M.apply_debounced()
 	local oil = require("oil")
-	local cfg = config.get().git
+	local cfg = config.get()
 	local bufnr = vim.api.nvim_get_current_buf()
 
 	local ok, current_dir = pcall(oil.get_current_dir, bufnr)
@@ -491,7 +559,7 @@ function M.apply_debounced()
 		end
 	end
 
-	pending_timers[bufnr] = vim.fn.timer_start(cfg.debounce_ms, function()
+	pending_timers[bufnr] = vim.fn.timer_start(cfg.git.debounce_ms, function()
 		pending_timers[bufnr] = nil
 		if vim.api.nvim_buf_is_valid(bufnr) then
 			M.apply(bufnr, current_dir)
