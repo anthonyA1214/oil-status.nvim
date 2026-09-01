@@ -1,8 +1,8 @@
-local ok, oil_git = pcall(require, "oil-git")
+local ok, oil_status = pcall(require, "oil-status")
 if ok then
-	if not oil_git._is_configured() then
-		oil_git.setup()
+	if not oil_status._is_configured() then
+		oil_status.setup()
 	else
-		oil_git.refresh()
+		oil_status.refresh()
 	end
 end

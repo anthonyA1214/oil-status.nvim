@@ -1,7 +1,7 @@
 local M = {}
 
 M.NAMESPACES = {
-	PREFIX = "oil_git_status_",
+	PREFIX = "oil_status_status_",
 }
 
 M.DEFAULTS = {
@@ -9,17 +9,17 @@ M.DEFAULTS = {
 }
 
 M.HIGHLIGHT_GROUPS = {
-	ADDED = "OilGitAdded",
-	MODIFIED = "OilGitModified",
-	MODIFIED_STAGED = "OilGitModifiedStaged",
-	MODIFIED_UNSTAGED = "OilGitModifiedUnstaged",
-	BRANCH = "OilGitBranch",
-	RENAMED = "OilGitRenamed",
-	DELETED = "OilGitDeleted",
-	COPIED = "OilGitCopied",
-	CONFLICT = "OilGitConflict",
-	UNTRACKED = "OilGitUntracked",
-	IGNORED = "OilGitIgnored",
+	ADDED = "OilStatusAdded",
+	MODIFIED = "OilStatusModified",
+	MODIFIED_STAGED = "OilStatusModifiedStaged",
+	MODIFIED_UNSTAGED = "OilStatusModifiedUnstaged",
+	BRANCH = "OilStatusBranch",
+	RENAMED = "OilStatusRenamed",
+	DELETED = "OilStatusDeleted",
+	COPIED = "OilStatusCopied",
+	CONFLICT = "OilStatusConflict",
+	UNTRACKED = "OilStatusUntracked",
+	IGNORED = "OilStatusIgnored",
 }
 
 M.GIT_STATUS = {

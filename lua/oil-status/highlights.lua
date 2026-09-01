@@ -1,12 +1,12 @@
 local M = {}
 
-local config = require("oil-git.config")
-local constants = require("oil-git.constants")
-local status_mapper = require("oil-git.status_mapper")
-local trie = require("oil-git.trie")
-local util = require("oil-git.util")
+local config = require("oil-status.config")
+local constants = require("oil-status.constants")
+local status_mapper = require("oil-status.status_mapper")
+local trie = require("oil-status.trie")
+local util = require("oil-status.util")
 
-local git = require("oil-git.git")
+local git = require("oil-status.git")
 
 local pending_timers = {} -- { [bufnr] = timer_id }
 local MAX_PENDING_TIMERS = 10
@@ -20,7 +20,7 @@ local function get_namespace(suffix)
 end
 
 local function get_branch_namespace(bufnr)
-	return vim.api.nvim_create_namespace("oil_git_branch_" .. bufnr)
+	return vim.api.nvim_create_namespace("oil_status_branch_" .. bufnr)
 end
 
 local function can_use_signcolumn()
@@ -84,7 +84,7 @@ local function clear_status(bufnr, reset_signcolumn)
 		return
 	end
 
-	local cfg = config.get()
+	local cfg = config.get().git
 	if
 		cfg.symbol_position == constants.SYMBOL_POSITIONS.SIGNCOLUMN
 		and cfg.can_use_signcolumn
@@ -103,7 +103,7 @@ local function clear_branch(bufnr)
 end
 
 local function render_branch(bufnr, branch)
-	local cfg = config.get()
+	local cfg = config.get().git
 	if not cfg.show_branch or not branch or branch == "" then
 		clear_branch(bufnr)
 		return
@@ -131,7 +131,7 @@ end
 
 function M.setup()
 	signcolumn_cache = nil
-	local cfg = config.get_raw()
+	local cfg = config.get_raw().git
 	for name, opts in pairs(cfg.highlights) do
 		if vim.fn.hlexists(name) == 0 then
 			vim.api.nvim_set_hl(0, name, opts)
@@ -180,7 +180,7 @@ local function apply_to_buffer(
 	end
 
 	local oil = require("oil")
-	local cfg = config.get()
+	local cfg = config.get().git
 
 	if vim.tbl_isempty(git_status) then
 		clear_status(bufnr, true)
@@ -438,7 +438,7 @@ function M.apply(bufnr, captured_dir)
 		return ok and dir == current_dir
 	end
 
-	if config.get().show_branch then
+	if config.get().git.show_branch then
 		git.get_branch_async(current_dir, function(branch)
 			if not buffer_still_matches_dir() then
 				return
@@ -470,7 +470,7 @@ end
 
 function M.apply_debounced()
 	local oil = require("oil")
-	local cfg = config.get()
+	local cfg = config.get().git
 	local bufnr = vim.api.nvim_get_current_buf()
 
 	local ok, current_dir = pcall(oil.get_current_dir, bufnr)

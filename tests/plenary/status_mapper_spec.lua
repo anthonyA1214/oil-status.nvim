@@ -14,10 +14,10 @@ describe("status_mapper", function()
 	}
 
 	before_each(function()
-		package.loaded["oil-git.status_mapper"] = nil
-		package.loaded["oil-git.constants"] = nil
-		status_mapper = require("oil-git.status_mapper")
-		constants = require("oil-git.constants")
+		package.loaded["oil-status.status_mapper"] = nil
+		package.loaded["oil-status.constants"] = nil
+		status_mapper = require("oil-status.status_mapper")
+		constants = require("oil-status.constants")
 	end)
 
 	describe("map", function()

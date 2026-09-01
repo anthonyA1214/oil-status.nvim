@@ -2,8 +2,8 @@ describe("path", function()
 	local path
 
 	before_each(function()
-		package.loaded["oil-git.path"] = nil
-		path = require("oil-git.path")
+		package.loaded["oil-status.path"] = nil
+		path = require("oil-status.path")
 	end)
 
 	describe("platform detection", function()

@@ -2,11 +2,11 @@ describe("trie", function()
 	local trie
 
 	before_each(function()
-		package.loaded["oil-git.trie"] = nil
-		package.loaded["oil-git.path"] = nil
-		package.loaded["oil-git.status_mapper"] = nil
-		package.loaded["oil-git.constants"] = nil
-		trie = require("oil-git.trie")
+		package.loaded["oil-status.trie"] = nil
+		package.loaded["oil-status.path"] = nil
+		package.loaded["oil-status.status_mapper"] = nil
+		package.loaded["oil-status.constants"] = nil
+		trie = require("oil-status.trie")
 	end)
 
 	describe("create_node", function()

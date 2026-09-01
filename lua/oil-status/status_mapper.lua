@@ -1,6 +1,6 @@
 local M = {}
 
-local constants = require("oil-git.constants")
+local constants = require("oil-status.constants")
 
 local STATUS_MAP = {
 	A = { constants.HIGHLIGHT_GROUPS.ADDED, "added", constants.PRIORITY.ADDED },

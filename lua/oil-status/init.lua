@@ -1,9 +1,9 @@
 local M = {}
 
-local config = require("oil-git.config")
-local git = require("oil-git.git")
-local highlights = require("oil-git.highlights")
-local util = require("oil-git.util")
+local config = require("oil-status.config")
+local git = require("oil-status.git")
+local highlights = require("oil-status.highlights")
+local util = require("oil-status.util")
 
 local initialized = false
 local user_configured = false
@@ -17,7 +17,7 @@ local function schedule_deferred_init()
 	pending_init = true
 
 	deferred_init_group =
-		vim.api.nvim_create_augroup("OilGitDeferredInit", { clear = true })
+		vim.api.nvim_create_augroup("OilStatusDeferredInit", { clear = true })
 
 	vim.api.nvim_create_autocmd("FileType", {
 		group = deferred_init_group,
@@ -25,7 +25,7 @@ local function schedule_deferred_init()
 		callback = function()
 			pending_init = false
 			vim.schedule(function()
-				require("oil-git").init()
+				require("oil-status").init()
 			end)
 		end,
 		once = true,
@@ -37,7 +37,7 @@ local function schedule_deferred_init()
 		callback = function()
 			pending_init = false
 			vim.schedule(function()
-				require("oil-git").init()
+				require("oil-status").init()
 			end)
 		end,
 		once = true,
@@ -50,7 +50,7 @@ local function schedule_deferred_init()
 			if args.data == "oil.nvim" then
 				pending_init = false
 				vim.schedule(function()
-					require("oil-git").init()
+					require("oil-status").init()
 				end)
 			end
 		end,
@@ -58,7 +58,8 @@ local function schedule_deferred_init()
 end
 
 local function setup_autocmds()
-	local group = vim.api.nvim_create_augroup("OilGitStatus", { clear = true })
+	local group =
+		vim.api.nvim_create_augroup("OilStatusAutocmds", { clear = true })
 
 	vim.api.nvim_create_autocmd("BufEnter", {
 		group = group,
@@ -96,7 +97,7 @@ local function setup_autocmds()
 		end,
 	})
 
-	local cfg = config.get()
+	local cfg = config.get().git
 	local user_patterns = { "FugitiveChanged", "LazyGitClosed" }
 	if not cfg.ignore_gitsigns_update then
 		table.insert(user_patterns, "GitSignsUpdate")

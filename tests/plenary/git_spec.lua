@@ -4,10 +4,10 @@ describe("git", function()
 	local helpers = require("tests.helpers")
 
 	before_each(function()
-		helpers.reset_oil_git_modules()
-		config = require("oil-git.config")
+		helpers.reset_oil_status_modules()
+		config = require("oil-status.config")
 		config.setup({ debug = false })
-		git = require("oil-git.git")
+		git = require("oil-status.git")
 		git.invalidate_cache()
 	end)
 
@@ -590,7 +590,7 @@ describe("git", function()
 			assert.is_not_nil(result_trie)
 			assert.is_not_nil(result_root)
 
-			local trie = require("oil-git.trie")
+			local trie = require("oil-status.trie")
 			local dir_status =
 				trie.lookup(result_trie, repo_dir .. "/src", result_root)
 			assert.equals("??", dir_status)
@@ -796,7 +796,7 @@ describe("git", function()
 		local trie
 
 		before_each(function()
-			trie = require("oil-git.trie")
+			trie = require("oil-status.trie")
 			repo_dir = helpers.create_temp_git_repo()
 			helpers.create_directory(repo_dir, "untracked_dir")
 			helpers.create_file(repo_dir, "untracked_dir/file1.lua", "content")
@@ -947,7 +947,7 @@ describe("git", function()
 
 		before_each(function()
 			config.setup({ debug = false, show_ignored_directories = true })
-			trie = require("oil-git.trie")
+			trie = require("oil-status.trie")
 			repo_dir = helpers.create_temp_git_repo()
 			helpers.create_gitignore(repo_dir, { "ignored_dir/" })
 			helpers.stage_file(repo_dir, ".gitignore")
@@ -1388,7 +1388,7 @@ describe("git", function()
 
 	describe("Windows compatibility", function()
 		it("should normalize Windows-style paths from git output", function()
-			local path_module = require("oil-git.path")
+			local path_module = require("oil-status.path")
 			local orig_is_windows = path_module.is_windows
 
 			path_module.is_windows = true
@@ -1416,7 +1416,7 @@ describe("git", function()
 		end)
 
 		it("should handle drive letter paths on mocked Windows", function()
-			local path_module = require("oil-git.path")
+			local path_module = require("oil-status.path")
 			local orig_is_windows = path_module.is_windows
 
 			path_module.is_windows = true
@@ -1445,7 +1445,7 @@ describe("git", function()
 		end)
 
 		it("should handle network paths on mocked Windows", function()
-			local path_module = require("oil-git.path")
+			local path_module = require("oil-status.path")
 			local orig_is_windows = path_module.is_windows
 
 			path_module.is_windows = true

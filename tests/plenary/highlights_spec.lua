@@ -4,14 +4,14 @@ describe("highlights", function()
 	local helpers = require("tests.helpers")
 
 	before_each(function()
-		helpers.reset_oil_git_modules()
-		config = require("oil-git.config")
+		helpers.reset_oil_status_modules()
+		config = require("oil-status.config")
 		config.setup({})
-		highlights = require("oil-git.highlights")
+		highlights = require("oil-status.highlights")
 	end)
 
 	local function get_status_extmarks(bufnr)
-		local ns_id = vim.api.nvim_create_namespace("oil_git_status_" .. bufnr)
+		local ns_id = vim.api.nvim_create_namespace("oil_status_status_" .. bufnr)
 		local ok, extmarks = pcall(
 			vim.api.nvim_buf_get_extmarks,
 			bufnr,
@@ -27,7 +27,7 @@ describe("highlights", function()
 	end
 
 	local function get_branch_extmarks(bufnr)
-		local ns_id = vim.api.nvim_create_namespace("oil_git_branch_" .. bufnr)
+		local ns_id = vim.api.nvim_create_namespace("oil_status_branch_" .. bufnr)
 		local ok, extmarks = pcall(
 			vim.api.nvim_buf_get_extmarks,
 			bufnr,
@@ -48,27 +48,27 @@ describe("highlights", function()
 
 	describe("setup", function()
 		it("should create highlight groups that don't exist", function()
-			vim.cmd("highlight clear OilGitAdded")
-			vim.cmd("highlight clear OilGitModified")
-			vim.cmd("highlight clear OilGitModifiedStaged")
-			vim.cmd("highlight clear OilGitModifiedUnstaged")
-			vim.cmd("highlight clear OilGitBranch")
-			vim.cmd("highlight clear OilGitDeleted")
+			vim.cmd("highlight clear OilStatusAdded")
+			vim.cmd("highlight clear OilStatusModified")
+			vim.cmd("highlight clear OilStatusModifiedStaged")
+			vim.cmd("highlight clear OilStatusModifiedUnstaged")
+			vim.cmd("highlight clear OilStatusBranch")
+			vim.cmd("highlight clear OilStatusDeleted")
 
 			highlights.setup()
 
 			local groups = {
-				"OilGitAdded",
-				"OilGitModified",
-				"OilGitModifiedStaged",
-				"OilGitModifiedUnstaged",
-				"OilGitBranch",
-				"OilGitDeleted",
-				"OilGitRenamed",
-				"OilGitUntracked",
-				"OilGitIgnored",
-				"OilGitConflict",
-				"OilGitCopied",
+				"OilStatusAdded",
+				"OilStatusModified",
+				"OilStatusModifiedStaged",
+				"OilStatusModifiedUnstaged",
+				"OilStatusBranch",
+				"OilStatusDeleted",
+				"OilStatusRenamed",
+				"OilStatusUntracked",
+				"OilStatusIgnored",
+				"OilStatusConflict",
+				"OilStatusCopied",
 			}
 			for _, group in ipairs(groups) do
 				assert.equals(
@@ -80,11 +80,11 @@ describe("highlights", function()
 		end)
 
 		it("should not overwrite existing highlight groups", function()
-			vim.api.nvim_set_hl(0, "OilGitAdded", { fg = "#123456" })
+			vim.api.nvim_set_hl(0, "OilStatusAdded", { fg = "#123456" })
 
 			highlights.setup()
 
-			local hl = vim.api.nvim_get_hl(0, { name = "OilGitAdded" })
+			local hl = vim.api.nvim_get_hl(0, { name = "OilStatusAdded" })
 			assert.is_not_nil(hl.fg)
 		end)
 	end)
@@ -114,8 +114,8 @@ describe("highlights", function()
 			local bufnr1 = vim.api.nvim_create_buf(false, true)
 			local bufnr2 = vim.api.nvim_create_buf(false, true)
 
-			local ns1 = vim.api.nvim_create_namespace("oil_git_test_ns1")
-			local ns2 = vim.api.nvim_create_namespace("oil_git_test_ns2")
+			local ns1 = vim.api.nvim_create_namespace("oil_status_test_ns1")
+			local ns2 = vim.api.nvim_create_namespace("oil_status_test_ns2")
 
 			vim.api.nvim_buf_set_lines(
 				bufnr1,
@@ -125,7 +125,7 @@ describe("highlights", function()
 				{ "line1", "line2" }
 			)
 			vim.api.nvim_buf_set_extmark(bufnr1, ns1, 0, 0, {
-				virt_text = { { " +", "OilGitAdded" } },
+				virt_text = { { " +", "OilStatusAdded" } },
 				virt_text_pos = "eol",
 			})
 
@@ -137,7 +137,7 @@ describe("highlights", function()
 				{ "line1", "line2" }
 			)
 			vim.api.nvim_buf_set_extmark(bufnr2, ns2, 0, 0, {
-				virt_text = { { " ~", "OilGitModified" } },
+				virt_text = { { " ~", "OilStatusModified" } },
 				virt_text_pos = "eol",
 			})
 
@@ -363,7 +363,7 @@ describe("highlights", function()
 				it(
 					"should inherit ignored status inside ignored dirs",
 					function()
-						require("oil-git").setup({ show_ignored_files = true })
+						require("oil-status").setup({ show_ignored_files = true })
 						local oil = require("oil")
 						oil.open(repo_dir .. "/ignored_dir")
 
@@ -379,14 +379,14 @@ describe("highlights", function()
 						local has_ignored = helpers.wait_for(function()
 							for _, mark in ipairs(get_status_extmarks(bufnr)) do
 								local details = mark[4] or {}
-								if details.hl_group == "OilGitIgnored" then
+								if details.hl_group == "OilStatusIgnored" then
 									return true
 								end
 								local virt_text = details.virt_text
 								if
 									virt_text
 									and virt_text[1]
-									and virt_text[1][2] == "OilGitIgnored"
+									and virt_text[1][2] == "OilStatusIgnored"
 								then
 									return true
 								end
@@ -524,7 +524,7 @@ describe("highlights", function()
 		it("should show branch when enabled", function()
 			local repo_dir = helpers.create_temp_git_repo()
 			helpers.create_and_commit_file(repo_dir, "file.lua", "content")
-			require("oil-git").setup({ show_branch = true })
+			require("oil-status").setup({ show_branch = true })
 
 			if pcall(require, "oil") then
 				local oil = require("oil")
@@ -547,7 +547,7 @@ describe("highlights", function()
 					local branch_details = branch_marks[1][4] or {}
 					assert.is_table(branch_details.virt_text)
 					assert.equals(
-						"OilGitBranch",
+						"OilStatusBranch",
 						branch_details.virt_text[1][2]
 					)
 

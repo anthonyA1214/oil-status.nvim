@@ -1,4 +1,4 @@
-# Contributing to oil-git.nvim
+# Contributing to oil-status.nvim
 
 ## Prerequisites
 
@@ -12,8 +12,8 @@ For better IDE support with LuaLS (autocompletion, type hints), consider using [
 ## Development Setup
 
 ```bash
-git clone https://github.com/malewicz1337/oil-git.nvim.git
-cd oil-git.nvim
+git clone https://github.com/malewicz1337/oil-status.nvim.git
+cd oil-status.nvim
 
 make test
 ```
@@ -32,9 +32,9 @@ make test
 ## Running Tests
 
 ```bash
-make test              
-make test-coverage    
-make test-file FILE=tests/plenary/path_spec.lua  
+make test
+make test-coverage
+make test-file FILE=tests/plenary/path_spec.lua
 ```
 
 ## Pull Request Process

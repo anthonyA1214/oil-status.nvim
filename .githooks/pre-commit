@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Pre-commit hook for oil-git.nvim
+# Pre-commit hook for oil-status.nvim
 # Runs format check, luacheck, and tests before allowing commit
 # Fails fast on first error
 

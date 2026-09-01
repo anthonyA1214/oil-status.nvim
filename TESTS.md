@@ -36,8 +36,8 @@ describe("module_name", function()
     local helpers = require("tests.helpers")
 
     before_each(function()
-        helpers.reset_oil_git_modules()
-        module = require("oil-git.module_name")
+        helpers.reset_oil_status_modules()
+        module = require("oil-status.module_name")
     end)
 
     describe("function_name", function()
@@ -68,7 +68,7 @@ helpers.wait_for(condition_fn, timeout_ms)
 helpers.now()                         
 
 -- Module helpers
-helpers.reset_oil_git_modules()      
+helpers.reset_oil_status_modules()      
 ```
 
 ## Coverage

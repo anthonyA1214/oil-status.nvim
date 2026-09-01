@@ -1,26 +1,26 @@
-# oil-git.nvim
+# oil-status.nvim
 
 <div align="center">
 
-[![Tests](https://github.com/malewicz1337/oil-git.nvim/actions/workflows/test.yml/badge.svg)](https://github.com/malewicz1337/oil-git.nvim/actions/workflows/test.yml)
+[![Tests](https://github.com/malewicz1337/oil-status.nvim/actions/workflows/test.yml/badge.svg)](https://github.com/malewicz1337/oil-status.nvim/actions/workflows/test.yml)
 [![Neovim](https://img.shields.io/badge/Neovim-0.8+-blueviolet.svg?style=flat&logo=neovim)](https://neovim.io)
 [![Lua](https://img.shields.io/badge/Lua-blue.svg?style=flat&logo=lua)](https://www.lua.org)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat)](LICENSE)
-[![GitHub stars](https://img.shields.io/github/stars/malewicz1337/oil-git.nvim?style=flat)](https://github.com/malewicz1337/oil-git.nvim/stargazers)
-[![GitHub last commit](https://img.shields.io/github/last-commit/malewicz1337/oil-git.nvim?style=flat)](https://github.com/malewicz1337/oil-git.nvim/commits)
+[![GitHub stars](https://img.shields.io/github/stars/malewicz1337/oil-status.nvim?style=flat)](https://github.com/malewicz1337/oil-status.nvim/stargazers)
+[![GitHub last commit](https://img.shields.io/github/last-commit/malewicz1337/oil-status.nvim?style=flat)](https://github.com/malewicz1337/oil-status.nvim/commits)
 
 </div>
 
 Git status integration for [oil.nvim](https://github.com/stevearc/oil.nvim) - colors file/directory names and adds status symbols.
 
 > [!NOTE]
-> **malewicz1337/oil-git.nvim** is the successor to `benomahony/oil-git.nvim`. It was created to provide a maintained, high-performance alternative with async support, directory highlighting, and debouncing.
+> **malewicz1337/oil-status.nvim** is the successor to `benomahony/oil-git.nvim`. It was created to provide a maintained, high-performance alternative with async support, directory highlighting, and debouncing.
 
 <table>
   <tr>
-    <td><img src="screenshots/oil-git-screenshot.png" alt="File status" width="400"/></td>
-    <td><img src="screenshots/oil-git-directories-screenshot.png" alt="Directory status" width="400"/></td>
+    <td><img src="screenshots/oil-status-screenshot.png" alt="File status" width="400"/></td>
+    <td><img src="screenshots/oil-status-directories-screenshot.png" alt="Directory status" width="400"/></td>
   </tr>
 </table>
 
@@ -37,7 +37,7 @@ Git status integration for [oil.nvim](https://github.com/stevearc/oil.nvim) - co
 **lazy.nvim** (no setup required):
 
 ```lua
-{ "malewicz1337/oil-git.nvim", dependencies = { "stevearc/oil.nvim" } }
+{ "malewicz1337/oil-status.nvim", dependencies = { "stevearc/oil.nvim" } }
 ```
 
 <details>
@@ -51,7 +51,7 @@ This is how I use the plugin in my config:
   dependencies = {
     { "echasnovski/mini.icons", opts = {} },
     {
-      "malewicz1337/oil-git.nvim",
+      "malewicz1337/oil-status.nvim",
       dependencies = { "stevearc/oil.nvim" },
       opts = {
         show_file_highlights = true,
@@ -74,13 +74,13 @@ This is how I use the plugin in my config:
 
 **Packer:**
 ```lua
-use { "malewicz1337/oil-git.nvim", requires = { "stevearc/oil.nvim" } }
+use { "malewicz1337/oil-status.nvim", requires = { "stevearc/oil.nvim" } }
 ```
 
 **vim-plug:**
 ```vim
 Plug 'stevearc/oil.nvim'
-Plug 'malewicz1337/oil-git.nvim'
+Plug 'malewicz1337/oil-status.nvim'
 ```
 </details>
 
@@ -89,40 +89,42 @@ Plug 'malewicz1337/oil-git.nvim'
 All options with defaults:
 
 ```lua
-require("oil-git").setup({
-  debounce_ms = 50,
-  show_file_highlights = true,
-  show_directory_highlights = true,
-  show_file_symbols = true,
-  show_directory_symbols = true,
-  show_ignored_files = false,       -- Show ignored file status
-  show_ignored_directories = false, -- Show ignored directory status
-  show_branch = false,              -- Show current Git branch in oil buffers
-  branch_format = " %s",           -- Format string for branch display
-  symbol_position = "eol",  -- "eol", "signcolumn", or "none"
-  can_use_signcolumn = nil,  -- Optional callback(bufnr): nil|bool|string
-  ignore_gitsigns_update = false,   -- Ignore GitSignsUpdate events (fallback for flickering)
+require("oil-status").setup({
   debug = false,            -- false, "minimal", or "verbose"
+  git = {
+    debounce_ms = 50,
+    show_file_highlights = true,
+    show_directory_highlights = true,
+    show_file_symbols = true,
+    show_directory_symbols = true,
+    show_ignored_files = false,       -- Show ignored file status
+    show_ignored_directories = false, -- Show ignored directory status
+    show_branch = false,              -- Show current Git branch in oil buffers
+    branch_format = " %s",           -- Format string for branch display
+    symbol_position = "eol",  -- "eol", "signcolumn", or "none"
+    can_use_signcolumn = nil,  -- Optional callback(bufnr): nil|bool|string
+    ignore_gitsigns_update = false,   -- Ignore GitSignsUpdate events (fallback for flickering)
 
-  symbols = {
-    file = { added = "+", modified = "~", renamed = "->", deleted = "D",
-             copied = "C", conflict = "!", untracked = "?", ignored = "o" },
-    directory = { added = "*", modified = "*", renamed = "*", deleted = "*",
-                  copied = "*", conflict = "!", untracked = "*", ignored = "o" },
-  },
+    symbols = {
+      file = { added = "+", modified = "~", renamed = "->", deleted = "D",
+               copied = "C", conflict = "!", untracked = "?", ignored = "o" },
+      directory = { added = "*", modified = "*", renamed = "*", deleted = "*",
+                    copied = "*", conflict = "!", untracked = "*", ignored = "o" },
+    },
 
-  -- Colors (only applied if highlight groups don't exist)
-  highlights = {
-    OilGitAdded = { fg = "#a6e3a1" },
-    OilGitModifiedStaged = { fg = "#f9e2af" },
-    OilGitModifiedUnstaged = { fg = "#e5c890" },
-    OilGitBranch = { fg = "#89b4fa" },
-    OilGitRenamed = { fg = "#cba6f7" },
-    OilGitDeleted = { fg = "#f38ba8" },
-    OilGitCopied = { fg = "#cba6f7" },
-    OilGitConflict = { fg = "#fab387" },
-    OilGitUntracked = { fg = "#89b4fa" },
-    OilGitIgnored = { fg = "#6c7086" },
+    -- Colors (only applied if highlight groups don't exist)
+    highlights = {
+      OilStatusAdded = { fg = "#a6e3a1" },
+      OilStatusModifiedStaged = { fg = "#f9e2af" },
+      OilStatusModifiedUnstaged = { fg = "#e5c890" },
+      OilStatusBranch = { fg = "#89b4fa" },
+      OilStatusRenamed = { fg = "#cba6f7" },
+      OilStatusDeleted = { fg = "#f38ba8" },
+      OilStatusCopied = { fg = "#cba6f7" },
+      OilStatusConflict = { fg = "#fab387" },
+      OilStatusUntracked = { fg = "#89b4fa" },
+      OilStatusIgnored = { fg = "#6c7086" },
+    },
   },
 })
 ```
@@ -169,8 +171,8 @@ Directories show the highest-priority status among their contents:
 
 ## Usage
 
-- `:lua require("oil-git").refresh()` - Manual refresh
-- `:checkhealth oil-git` - Check plugin health
+- `:lua require("oil-status").refresh()` - Manual refresh
+- `:checkhealth oil-status` - Check plugin health
 
 Status auto-refreshes on buffer enter, file operations, focus changes, and terminal close (LazyGit, etc.).
 

@@ -84,19 +84,19 @@ function M.wait_for(condition, timeout_ms)
 	return vim.wait(timeout_ms, condition, 10)
 end
 
-function M.reset_oil_git_modules()
+function M.reset_oil_status_modules()
 	local modules = {
-		"oil-git",
-		"oil-git.init",
-		"oil-git.config",
-		"oil-git.constants",
-		"oil-git.git",
-		"oil-git.highlights",
-		"oil-git.path",
-		"oil-git.status_mapper",
-		"oil-git.trie",
-		"oil-git.util",
-		"oil-git.health",
+		"oil-status",
+		"oil-status.init",
+		"oil-status.config",
+		"oil-status.constants",
+		"oil-status.git",
+		"oil-status.highlights",
+		"oil-status.path",
+		"oil-status.status_mapper",
+		"oil-status.trie",
+		"oil-status.util",
+		"oil-status.health",
 	}
 	for _, mod in ipairs(modules) do
 		package.loaded[mod] = nil
@@ -127,7 +127,7 @@ function M.count_extmarks(bufnr)
 	if not vim.api.nvim_buf_is_valid(bufnr) then
 		return 0
 	end
-	local ns_id = vim.api.nvim_create_namespace("oil_git_status_" .. bufnr)
+	local ns_id = vim.api.nvim_create_namespace("oil_status_status_" .. bufnr)
 	local ok, extmarks =
 		pcall(vim.api.nvim_buf_get_extmarks, bufnr, ns_id, 0, -1, {})
 	if ok then

@@ -7,7 +7,7 @@ local error = vim.health.error or vim.health.report_error
 local info = vim.health.info or vim.health.report_info
 
 function M.check()
-	start("oil-git.nvim")
+	start("oil-status.nvim")
 
 	if vim.fn.has("nvim-0.8") == 1 then
 		ok("Neovim >= 0.8")
@@ -39,7 +39,7 @@ function M.check()
 		error("git is not installed or not in PATH")
 	end
 
-	local git = require("oil-git.git")
+	local git = require("oil-status.git")
 	local cwd = vim.fn.getcwd()
 	local root, method = git.get_root(cwd)
 	if root then
@@ -51,23 +51,23 @@ function M.check()
 		info("Current directory is not a git repository")
 	end
 
-	local config = require("oil-git.config")
+	local config = require("oil-status.config")
 	local cfg = config.get()
 	if not vim.tbl_isempty(cfg) then
 		ok("Configuration loaded")
 		if cfg.debug then
 			ok("Debug mode: " .. tostring(cfg.debug))
 		end
-		ok("Symbol position: " .. cfg.symbol_position)
+		ok("Symbol position: " .. cfg.git.symbol_position)
 	else
 		warn("Using default configuration (setup() not called yet)")
 	end
 
-	local oil_git = require("oil-git")
-	if oil_git._is_initialized() then
+	local oil_status = require("oil-status")
+	if oil_status._is_initialized() then
 		ok("Plugin initialized successfully")
 	else
-		if oil_git._is_configured() then
+		if oil_status._is_configured() then
 			warn("Plugin configured but not initialized (waiting for oil.nvim)")
 		else
 			warn(

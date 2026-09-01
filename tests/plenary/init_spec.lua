@@ -1,54 +1,54 @@
 describe("init", function()
-	local oil_git
+	local oil_status
 	local helpers = require("tests.helpers")
 
 	before_each(function()
-		helpers.reset_oil_git_modules()
-		pcall(vim.api.nvim_del_augroup_by_name, "OilGitStatus")
-		pcall(vim.api.nvim_del_augroup_by_name, "OilGitDeferredInit")
-		oil_git = require("oil-git")
+		helpers.reset_oil_status_modules()
+		pcall(vim.api.nvim_del_augroup_by_name, "OilStatusAutocmds")
+		pcall(vim.api.nvim_del_augroup_by_name, "OilStatusDeferredInit")
+		oil_status = require("oil-status")
 	end)
 
 	describe("setup", function()
 		it("should accept nil and empty options", function()
 			assert.has_no.errors(function()
-				oil_git.setup(nil)
+				oil_status.setup(nil)
 			end)
-			helpers.reset_oil_git_modules()
-			oil_git = require("oil-git")
+			helpers.reset_oil_status_modules()
+			oil_status = require("oil-status")
 			assert.has_no.errors(function()
-				oil_git.setup({})
+				oil_status.setup({})
 			end)
 		end)
 
 		it("should mark as configured after setup", function()
-			assert.is_false(oil_git._is_configured())
-			oil_git.setup({})
-			assert.is_true(oil_git._is_configured())
+			assert.is_false(oil_status._is_configured())
+			oil_status.setup({})
+			assert.is_true(oil_status._is_configured())
 		end)
 
 		it("should apply custom options", function()
-			oil_git.setup({
+			oil_status.setup({
 				debounce_ms = 200,
 				symbols = { file = { added = "A" } },
-				highlights = { OilGitAdded = { fg = "#123456" } },
+				highlights = { OilStatusAdded = { fg = "#123456" } },
 			})
-			local config = require("oil-git.config")
+			local config = require("oil-status.config")
 			local cfg = config.get()
-			assert.equals(200, cfg.debounce_ms)
-			assert.equals("A", cfg.symbols.file.added)
-			assert.equals("#123456", cfg.highlights.OilGitAdded.fg)
+			assert.equals(200, cfg.git.debounce_ms)
+			assert.equals("A", cfg.git.symbols.file.added)
+			assert.equals("#123456", cfg.git.highlights.OilStatusAdded.fg)
 		end)
 	end)
 
 	describe("autocmds", function()
 		it(
-			"should create OilGitStatus augroup with expected autocmds",
+			"should create OilStatusAutocmds augroup with expected autocmds",
 			function()
-				oil_git.setup({})
+				oil_status.setup({})
 
 				local autocmds =
-					vim.api.nvim_get_autocmds({ group = "OilGitStatus" })
+					vim.api.nvim_get_autocmds({ group = "OilStatusAutocmds" })
 				assert.is_true(#autocmds > 0)
 
 				local events = {}
@@ -63,13 +63,13 @@ describe("init", function()
 		)
 
 		it("should create autocmds for oil://* pattern", function()
-			oil_git.setup({})
+			oil_status.setup({})
 
 			local events_to_check =
 				{ "BufEnter", "TextChanged", "FocusGained", "BufDelete" }
 			for _, event in ipairs(events_to_check) do
 				local autocmds = vim.api.nvim_get_autocmds({
-					group = "OilGitStatus",
+					group = "OilStatusAutocmds",
 					event = event,
 				})
 
@@ -86,15 +86,15 @@ describe("init", function()
 		end)
 
 		it("should clear existing autocmds on re-init", function()
-			oil_git.setup({})
+			oil_status.setup({})
 			local first_count =
-				#vim.api.nvim_get_autocmds({ group = "OilGitStatus" })
+				#vim.api.nvim_get_autocmds({ group = "OilStatusAutocmds" })
 
-			helpers.reset_oil_git_modules()
-			oil_git = require("oil-git")
-			oil_git.setup({})
+			helpers.reset_oil_status_modules()
+			oil_status = require("oil-status")
+			oil_status.setup({})
 			local second_count =
-				#vim.api.nvim_get_autocmds({ group = "OilGitStatus" })
+				#vim.api.nvim_get_autocmds({ group = "OilStatusAutocmds" })
 
 			assert.equals(first_count, second_count)
 		end)
@@ -102,10 +102,10 @@ describe("init", function()
 		it(
 			"should include GitSignsUpdate in User autocmd by default",
 			function()
-				oil_git.setup({})
+				oil_status.setup({})
 
 				local autocmds = vim.api.nvim_get_autocmds({
-					group = "OilGitStatus",
+					group = "OilStatusAutocmds",
 					event = "User",
 				})
 
@@ -126,10 +126,10 @@ describe("init", function()
 		it(
 			"should exclude GitSignsUpdate when ignore_gitsigns_update is true",
 			function()
-				oil_git.setup({ ignore_gitsigns_update = true })
+				oil_status.setup({ ignore_gitsigns_update = true })
 
 				local autocmds = vim.api.nvim_get_autocmds({
-					group = "OilGitStatus",
+					group = "OilStatusAutocmds",
 					event = "User",
 				})
 
@@ -150,20 +150,20 @@ describe("init", function()
 
 	describe("highlight groups", function()
 		it("should create all highlight groups on setup", function()
-			oil_git.setup({})
+			oil_status.setup({})
 
 			local groups = {
-				"OilGitAdded",
-				"OilGitModified",
-				"OilGitModifiedStaged",
-				"OilGitModifiedUnstaged",
-				"OilGitBranch",
-				"OilGitDeleted",
-				"OilGitRenamed",
-				"OilGitUntracked",
-				"OilGitIgnored",
-				"OilGitConflict",
-				"OilGitCopied",
+				"OilStatusAdded",
+				"OilStatusModified",
+				"OilStatusModifiedStaged",
+				"OilStatusModifiedUnstaged",
+				"OilStatusBranch",
+				"OilStatusDeleted",
+				"OilStatusRenamed",
+				"OilStatusUntracked",
+				"OilStatusIgnored",
+				"OilStatusConflict",
+				"OilStatusCopied",
 			}
 			for _, group in ipairs(groups) do
 				assert.equals(
@@ -178,55 +178,55 @@ describe("init", function()
 	describe("refresh", function()
 		it("should work before and after initialization", function()
 			assert.has_no.errors(function()
-				oil_git.refresh()
+				oil_status.refresh()
 			end)
 
-			oil_git.setup({})
+			oil_status.setup({})
 			assert.has_no.errors(function()
-				oil_git.refresh()
+				oil_status.refresh()
 			end)
 		end)
 	end)
 
 	describe("deferred initialization", function()
 		it("should return true when already initialized", function()
-			oil_git.setup({})
-			local result = oil_git.init()
+			oil_status.setup({})
+			local result = oil_status.init()
 			assert.is_true(result)
 		end)
 
 		it("should return true when oil is available", function()
 			if pcall(require, "oil") then
-				local result = oil_git.init()
+				local result = oil_status.init()
 				assert.is_true(result)
 			end
 		end)
 
 		it("should expose _is_initialized correctly", function()
-			assert.is_false(oil_git._is_initialized())
-			oil_git.setup({})
-			assert.is_true(oil_git._is_initialized())
+			assert.is_false(oil_status._is_initialized())
+			oil_status.setup({})
+			assert.is_true(oil_status._is_initialized())
 		end)
 
 		it(
 			"should return false and create deferred autocmds when oil unavailable",
 			function()
-				helpers.reset_oil_git_modules()
+				helpers.reset_oil_status_modules()
 
-				local util = require("oil-git.util")
+				local util = require("oil-status.util")
 				local original = util.is_oil_available
 				util.is_oil_available = function()
 					return false
 				end
 
-				oil_git = require("oil-git")
+				oil_status = require("oil-status")
 
-				local result = oil_git.init()
+				local result = oil_status.init()
 				assert.is_false(result)
-				assert.is_false(oil_git._is_initialized())
+				assert.is_false(oil_status._is_initialized())
 
 				local autocmds =
-					vim.api.nvim_get_autocmds({ group = "OilGitDeferredInit" })
+					vim.api.nvim_get_autocmds({ group = "OilStatusDeferredInit" })
 				assert.is_true(
 					#autocmds > 0,
 					"Deferred init autocmds should exist"
@@ -261,37 +261,37 @@ describe("init", function()
 				)
 
 				util.is_oil_available = original
-				pcall(vim.api.nvim_del_augroup_by_name, "OilGitDeferredInit")
+				pcall(vim.api.nvim_del_augroup_by_name, "OilStatusDeferredInit")
 			end
 		)
 
 		it("should not create duplicate deferred autocmds", function()
-			helpers.reset_oil_git_modules()
+			helpers.reset_oil_status_modules()
 
-			local util = require("oil-git.util")
+			local util = require("oil-status.util")
 			local original = util.is_oil_available
 			util.is_oil_available = function()
 				return false
 			end
 
-			oil_git = require("oil-git")
+			oil_status = require("oil-status")
 
-			oil_git.init()
-			oil_git.init()
-			oil_git.init()
+			oil_status.init()
+			oil_status.init()
+			oil_status.init()
 
 			local autocmds =
-				vim.api.nvim_get_autocmds({ group = "OilGitDeferredInit" })
+				vim.api.nvim_get_autocmds({ group = "OilStatusDeferredInit" })
 			assert.equals(3, #autocmds)
 
 			util.is_oil_available = original
-			pcall(vim.api.nvim_del_augroup_by_name, "OilGitDeferredInit")
+			pcall(vim.api.nvim_del_augroup_by_name, "OilStatusDeferredInit")
 		end)
 
 		it("should clear deferred autocmds when init succeeds", function()
-			helpers.reset_oil_git_modules()
+			helpers.reset_oil_status_modules()
 
-			local util = require("oil-git.util")
+			local util = require("oil-status.util")
 			local original = util.is_oil_available
 			local call_count = 0
 
@@ -300,21 +300,21 @@ describe("init", function()
 				return call_count > 1
 			end
 
-			oil_git = require("oil-git")
+			oil_status = require("oil-status")
 
-			local result1 = oil_git.init()
+			local result1 = oil_status.init()
 			assert.is_false(result1)
 
 			local autocmds_before =
-				vim.api.nvim_get_autocmds({ group = "OilGitDeferredInit" })
+				vim.api.nvim_get_autocmds({ group = "OilStatusDeferredInit" })
 			assert.is_true(#autocmds_before > 0)
 
-			local result2 = oil_git.init()
+			local result2 = oil_status.init()
 			assert.is_true(result2)
 
 			local ok, autocmds_after = pcall(
 				vim.api.nvim_get_autocmds,
-				{ group = "OilGitDeferredInit" }
+				{ group = "OilStatusDeferredInit" }
 			)
 			if ok then
 				assert.equals(0, #autocmds_after)
@@ -339,7 +339,7 @@ describe("init", function()
 			end)
 
 			it("should apply highlights when entering oil buffer", function()
-				oil_git.setup({})
+				oil_status.setup({})
 
 				local oil = require("oil")
 				oil.open(repo_dir)
@@ -360,7 +360,7 @@ describe("init", function()
 			end)
 
 			it("should refresh highlights in oil buffer", function()
-				oil_git.setup({})
+				oil_status.setup({})
 
 				local oil = require("oil")
 				oil.open(repo_dir)
@@ -371,7 +371,7 @@ describe("init", function()
 
 				if ready then
 					assert.has_no.errors(function()
-						oil_git.refresh()
+						oil_status.refresh()
 					end)
 				end
 			end)

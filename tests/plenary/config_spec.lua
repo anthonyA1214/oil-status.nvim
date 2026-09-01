@@ -2,8 +2,8 @@ describe("config", function()
 	local config
 
 	before_each(function()
-		package.loaded["oil-git.config"] = nil
-		config = require("oil-git.config")
+		package.loaded["oil-status.config"] = nil
+		config = require("oil-status.config")
 	end)
 
 	describe("setup", function()
@@ -11,8 +11,8 @@ describe("config", function()
 			assert.has_no.errors(function()
 				config.setup(nil)
 			end)
-			package.loaded["oil-git.config"] = nil
-			config = require("oil-git.config")
+			package.loaded["oil-status.config"] = nil
+			config = require("oil-status.config")
 			assert.has_no.errors(function()
 				config.setup({})
 			end)
@@ -21,8 +21,8 @@ describe("config", function()
 		it("should merge user options with defaults", function()
 			config.setup({ debounce_ms = 100 })
 			local cfg = config.get()
-			assert.equals(100, cfg.debounce_ms)
-			assert.is_true(cfg.show_file_highlights)
+			assert.equals(100, cfg.git.debounce_ms)
+			assert.is_true(cfg.git.show_file_highlights)
 		end)
 
 		it("should override boolean and string defaults", function()
@@ -38,15 +38,15 @@ describe("config", function()
 				symbol_position = "signcolumn",
 			})
 			local cfg = config.get()
-			assert.is_false(cfg.show_file_highlights)
-			assert.is_false(cfg.show_directory_highlights)
-			assert.is_false(cfg.show_file_symbols)
-			assert.is_false(cfg.show_directory_symbols)
-			assert.is_true(cfg.show_ignored_files)
-			assert.is_true(cfg.show_ignored_directories)
-			assert.is_true(cfg.show_branch)
-			assert.equals("branch:%s", cfg.branch_format)
-			assert.equals("signcolumn", cfg.symbol_position)
+			assert.is_false(cfg.git.show_file_highlights)
+			assert.is_false(cfg.git.show_directory_highlights)
+			assert.is_false(cfg.git.show_file_symbols)
+			assert.is_false(cfg.git.show_directory_symbols)
+			assert.is_true(cfg.git.show_ignored_files)
+			assert.is_true(cfg.git.show_ignored_directories)
+			assert.is_true(cfg.git.show_branch)
+			assert.equals("branch:%s", cfg.git.branch_format)
+			assert.equals("signcolumn", cfg.git.symbol_position)
 		end)
 
 		it("should deep merge nested options", function()
@@ -55,17 +55,17 @@ describe("config", function()
 					file = { added = "A" },
 				},
 				highlights = {
-					OilGitAdded = { fg = "#ffffff" },
+					OilStatusAdded = { fg = "#ffffff" },
 				},
 			})
 			local cfg = config.get()
-			assert.equals("A", cfg.symbols.file.added)
-			assert.equals("~", cfg.symbols.file.modified)
-			assert.equals("*", cfg.symbols.directory.added)
-			assert.equals("#ffffff", cfg.highlights.OilGitAdded.fg)
-			assert.is_not_nil(cfg.highlights.OilGitModified)
-			assert.is_not_nil(cfg.highlights.OilGitModifiedStaged)
-			assert.is_not_nil(cfg.highlights.OilGitModifiedUnstaged)
+			assert.equals("A", cfg.git.symbols.file.added)
+			assert.equals("~", cfg.git.symbols.file.modified)
+			assert.equals("*", cfg.git.symbols.directory.added)
+			assert.equals("#ffffff", cfg.git.highlights.OilStatusAdded.fg)
+			assert.is_not_nil(cfg.git.highlights.OilStatusModified)
+			assert.is_not_nil(cfg.git.highlights.OilStatusModifiedStaged)
+			assert.is_not_nil(cfg.git.highlights.OilStatusModifiedUnstaged)
 		end)
 
 		it(
@@ -73,16 +73,16 @@ describe("config", function()
 			function()
 				config.setup({
 					highlights = {
-						OilGitModified = { fg = "#111111" },
+						OilStatusModified = { fg = "#111111" },
 					},
 				})
 				local cfg = config.get()
 
-				assert.equals("#111111", cfg.highlights.OilGitModified.fg)
-				assert.equals("#111111", cfg.highlights.OilGitModifiedStaged.fg)
+				assert.equals("#111111", cfg.git.highlights.OilStatusModified.fg)
+				assert.equals("#111111", cfg.git.highlights.OilStatusModifiedStaged.fg)
 				assert.equals(
 					"#111111",
-					cfg.highlights.OilGitModifiedUnstaged.fg
+					cfg.git.highlights.OilStatusModifiedUnstaged.fg
 				)
 			end
 		)
@@ -96,7 +96,7 @@ describe("config", function()
 		it("should handle ignore_gitsigns_update option", function()
 			config.setup({ ignore_gitsigns_update = true })
 			local cfg = config.get()
-			assert.is_true(cfg.ignore_gitsigns_update)
+			assert.is_true(cfg.git.ignore_gitsigns_update)
 		end)
 	end)
 
@@ -105,7 +105,7 @@ describe("config", function()
 			config.setup({})
 			local cfg = config.get()
 			assert.has_error(function()
-				cfg.debounce_ms = 999
+				cfg.git.debounce_ms = 999
 			end, "Attempt to modify read-only config")
 		end)
 
@@ -113,10 +113,10 @@ describe("config", function()
 			config.setup({})
 			local cfg = config.get()
 			assert.has_error(function()
-				cfg.symbols.file.added = "X"
+				cfg.git.symbols.file.added = "X"
 			end, "Attempt to modify read-only config")
 			assert.has_error(function()
-				cfg.highlights.OilGitAdded.fg = "#000000"
+				cfg.git.highlights.OilStatusAdded.fg = "#000000"
 			end, "Attempt to modify read-only config")
 		end)
 
@@ -124,8 +124,8 @@ describe("config", function()
 			config.setup({ debounce_ms = 123 })
 			local cfg1 = config.get()
 			local cfg2 = config.get()
-			assert.equals(cfg1.debounce_ms, cfg2.debounce_ms)
-			assert.is_nil(cfg1.nonexistent_key)
+			assert.equals(cfg1.git.debounce_ms, cfg2.git.debounce_ms)
+			assert.is_nil(cfg1.git.nonexistent_key)
 		end)
 	end)
 
@@ -133,15 +133,15 @@ describe("config", function()
 		it("should populate empty config with defaults", function()
 			config.ensure()
 			local cfg = config.get()
-			assert.equals(50, cfg.debounce_ms)
-			assert.is_true(cfg.show_file_symbols)
+			assert.equals(50, cfg.git.debounce_ms)
+			assert.is_true(cfg.git.show_file_symbols)
 		end)
 
 		it("should not overwrite existing config", function()
 			config.setup({ debounce_ms = 200 })
 			config.ensure()
 			local cfg = config.get()
-			assert.equals(200, cfg.debounce_ms)
+			assert.equals(200, cfg.git.debounce_ms)
 		end)
 	end)
 
@@ -150,23 +150,23 @@ describe("config", function()
 			config.setup({})
 			local cfg = config.get()
 
-			assert.equals(50, cfg.debounce_ms)
-			assert.is_true(cfg.show_file_highlights)
-			assert.is_true(cfg.show_directory_highlights)
-			assert.is_true(cfg.show_file_symbols)
-			assert.is_true(cfg.show_directory_symbols)
-			assert.is_false(cfg.show_ignored_files)
-			assert.is_false(cfg.show_ignored_directories)
-			assert.is_false(cfg.show_branch)
-			assert.equals(" %s", cfg.branch_format)
-			assert.equals("eol", cfg.symbol_position)
-			assert.is_nil(cfg.can_use_signcolumn)
-			assert.is_false(cfg.ignore_gitsigns_update)
+			assert.equals(50, cfg.git.debounce_ms)
+			assert.is_true(cfg.git.show_file_highlights)
+			assert.is_true(cfg.git.show_directory_highlights)
+			assert.is_true(cfg.git.show_file_symbols)
+			assert.is_true(cfg.git.show_directory_symbols)
+			assert.is_false(cfg.git.show_ignored_files)
+			assert.is_false(cfg.git.show_ignored_directories)
+			assert.is_false(cfg.git.show_branch)
+			assert.equals(" %s", cfg.git.branch_format)
+			assert.equals("eol", cfg.git.symbol_position)
+			assert.is_nil(cfg.git.can_use_signcolumn)
+			assert.is_false(cfg.git.ignore_gitsigns_update)
 			assert.is_false(cfg.debug)
 
-			assert.is_table(cfg.symbols.file)
-			assert.is_table(cfg.symbols.directory)
-			assert.is_table(cfg.highlights)
+			assert.is_table(cfg.git.symbols.file)
+			assert.is_table(cfg.git.symbols.directory)
+			assert.is_table(cfg.git.highlights)
 		end)
 
 		it("should have all file and directory symbols", function()
@@ -184,12 +184,12 @@ describe("config", function()
 				ignored = "o",
 			}
 			for k, v in pairs(expected_file) do
-				assert.equals(v, cfg.symbols.file[k], "file." .. k)
+				assert.equals(v, cfg.git.symbols.file[k], "file." .. k)
 			end
 
-			assert.equals("*", cfg.symbols.directory.added)
-			assert.equals("!", cfg.symbols.directory.conflict)
-			assert.equals("o", cfg.symbols.directory.ignored)
+			assert.equals("*", cfg.git.symbols.directory.added)
+			assert.equals("!", cfg.git.symbols.directory.conflict)
+			assert.equals("o", cfg.git.symbols.directory.ignored)
 		end)
 
 		it("should have all highlight groups with valid fg colors", function()
@@ -197,23 +197,23 @@ describe("config", function()
 			local cfg = config.get()
 
 			local expected_groups = {
-				"OilGitAdded",
-				"OilGitModified",
-				"OilGitModifiedStaged",
-				"OilGitModifiedUnstaged",
-				"OilGitBranch",
-				"OilGitRenamed",
-				"OilGitDeleted",
-				"OilGitCopied",
-				"OilGitConflict",
-				"OilGitUntracked",
-				"OilGitIgnored",
+				"OilStatusAdded",
+				"OilStatusModified",
+				"OilStatusModifiedStaged",
+				"OilStatusModifiedUnstaged",
+				"OilStatusBranch",
+				"OilStatusRenamed",
+				"OilStatusDeleted",
+				"OilStatusCopied",
+				"OilStatusConflict",
+				"OilStatusUntracked",
+				"OilStatusIgnored",
 			}
 			for _, name in ipairs(expected_groups) do
-				assert.is_table(cfg.highlights[name], name .. " missing")
+				assert.is_table(cfg.git.highlights[name], name .. " missing")
 				assert.matches(
 					"^#%x%x%x%x%x%x$",
-					cfg.highlights[name].fg,
+					cfg.git.highlights[name].fg,
 					name .. " fg"
 				)
 			end

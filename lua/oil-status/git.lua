@@ -1,10 +1,10 @@
 local M = {}
 
 local uv = vim.uv or vim.loop
-local path = require("oil-git.path")
-local trie = require("oil-git.trie")
-local util = require("oil-git.util")
-local config = require("oil-git.config")
+local path = require("oil-status.path")
+local trie = require("oil-status.trie")
+local util = require("oil-status.util")
+local config = require("oil-status.config")
 
 local CACHE_TTL_MS = 500
 
@@ -291,7 +291,7 @@ function M.get_status_async(dir, callback)
 			return
 		end
 
-		local cfg = config.get()
+		local cfg = config.get().git
 		local include_ignored = cfg.show_ignored_files
 			or cfg.show_ignored_directories
 		local now = uv.now()

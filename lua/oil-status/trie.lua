@@ -1,8 +1,8 @@
 local M = {}
 
-local constants = require("oil-git.constants")
-local path = require("oil-git.path")
-local status_mapper = require("oil-git.status_mapper")
+local constants = require("oil-status.constants")
+local path = require("oil-status.path")
+local status_mapper = require("oil-status.status_mapper")
 
 local function get_relative_path(filepath, git_root)
 	if not filepath or not git_root then

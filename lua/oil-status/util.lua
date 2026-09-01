@@ -1,6 +1,6 @@
 local M = {}
 
-local config = require("oil-git.config")
+local config = require("oil-status.config")
 
 function M.debug_log(level, msg, ...)
 	local cfg = config.get()
@@ -20,7 +20,7 @@ function M.debug_log(level, msg, ...)
 	end
 
 	vim.schedule(function()
-		vim.notify("[oil-git] " .. formatted, vim.log.levels.DEBUG)
+		vim.notify("[oil-status] " .. formatted, vim.log.levels.DEBUG)
 	end)
 end
 
